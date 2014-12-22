@@ -5,6 +5,7 @@ __author__ = 'jiusi'
 import json
 import numpy as np
 import matplotlib.pyplot as plt
+import utilsData as ud
 from scipy.fftpack import fft, ifft, fftfreq
 from itertools import combinations
 
@@ -126,3 +127,13 @@ def testColormesh(clf, classes):
 
     plt.show()
 
+
+def plotExample():
+    f = './data/train.txt'
+    dataList = ud.readFile(f)
+    accdata = ud.getDataByDataType('accelerator', dataList)
+    ud.betterPrintData(accdata)
+    plotLines(accdata, [0,1,2])
+
+
+# plotExample()

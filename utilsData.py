@@ -2,9 +2,12 @@ __author__ = 'jiusi'
 
 import json
 import numpy as np
+import ntpath
+import json
 
 # status: Walking, Sitting, Running, Riding, Driving
-STAT_CODE = {'Walking':0, 'Sitting':1, 'Running':2, 'Riding':3, 'Driving':4}
+# STAT_CODE = {'Walking':0, 'Sitting':1, 'Running':2, 'Riding':3, 'Driving':4}
+STAT_CODE = {'Sitting':0, 'Driving':1, 'Riding':2, 'Walking':3, 'Running': 4}
 
 def getDataByDataType(datatype, list):
     if 'sensorName' in list[0]:
@@ -41,6 +44,13 @@ def readFile(filePath, isOld=False):
         else:
             return dataList
 
+def readFiles(filePaths):
+    dataList = []
+    for path in filePaths:
+        print path
+        dataList.extend(readFile(path))
+    return dataList
+
 def splitDataListBySampleGranularity(granularity, dataList):
     return [dataList[i:i+granularity] for i in range(0, len(dataList), granularity)]
 
@@ -64,9 +74,12 @@ def assignClassToBucket(buckets):
         y.append(STAT_CODE[status])
     return y
 
-def processFile(filePath, granularity):
-    dataList = readFile(filePath)
+def processFile(filePaths, granularity):
+    dataList = readFiles(filePaths)
+
     accList = getDataByDataType('accelerator', dataList)
+
+    betterPrintData(accList)
 
     print 'len datalist:', len(dataList), ' len acclist:', len(accList)
 
@@ -81,10 +94,6 @@ def processFile(filePath, granularity):
 
     return slices, y
 
-
-
-
-
 def printDataLables(filePath):
     statusCounter = {}
     dataList = readFile(filePath)
@@ -97,10 +106,12 @@ def printDataLables(filePath):
     print statusCounter
 
 def betterPrint(filePath):
-    message = ''
-
     dataList = readFile(filePath)
+    betterPrintData(dataList)
 
+
+def betterPrintData(dataList):
+    message = ''
     dataList = getDataByDataType('accelerator', dataList)
 
     previousStatus = dataList[0]['status']
@@ -123,3 +134,39 @@ def betterPrint(filePath):
 # betterPrint('/Users/jiusi/try.txt')
 # betterPrint('/Users/jiusi/walking12130.txt')
 # betterPrint('/Users/jiusi/shouldsmall.txt')
+# betterPrint('/Users/jiusi/teststatus.txt')
+# betterPrint('/Users/jiusi/ts1.txt')
+# betterPrint('/Users/jiusi/run.txt')
+# betterPrint('/Users/jiusi/doutui.txt')
+
+def extractStatus(filePath, type, status, start, end):
+    fileName = ntpath.basename(filePath)
+    dirName = ntpath.dirname(filePath)
+    outPath = dirName+'/'+fileName+'.rfn'
+    print 'extract to:', outPath
+
+    data = readFile(filePath)
+    data = getDataByDataType(type, data)
+    buckets = splitDataListByStatus(data)
+
+    for bucket in buckets:
+        if bucket[0]['status'] == status:
+            data = bucket
+
+    data = data[start:end]
+
+    f = open(outPath, 'w')
+    for d in data:
+        f.write(json.dumps(d)+'\n')
+    f.close()
+
+
+def mergeFile(filePaths):
+    dirName = ntpath.dirname(filePaths[0])
+    outPath = dirName +'/merge.txt'
+    print 'merge to:', outPath
+    f = open(outPath, 'w')
+    dataList = readFiles(filePaths)
+    for dt in dataList:
+        f.write(json.dumps(dt) + '\n')
+    f.close()
