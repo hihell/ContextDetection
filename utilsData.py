@@ -5,11 +5,9 @@ import numpy as np
 import ntpath
 import json
 
-# status: Walking, Sitting, Running, Riding, Driving
-# STAT_CODE = {'Walking':0, 'Sitting':1, 'Running':2, 'Riding':3, 'Driving':4}
 STAT_CODE = {'Sitting':0, 'Driving':1, 'Riding':2, 'Walking':3, 'Running': 4}
 
-def getDataByDataType(datatype, list):
+def getDataBySensorType(datatype, list):
     if 'sensorName' in list[0]:
         key = 'sensorName'
         aList = [ele for ele in list if ele[key] == 'acc']
@@ -33,7 +31,6 @@ def getDataByDataType(datatype, list):
     else:
         print 'wrong data type:', datatype, ' must be either accelerator, linacc or gyro'
         return None
-
 
 def readFile(filePath, isOld=False):
     with open(filePath) as f:
@@ -77,7 +74,7 @@ def assignClassToBucket(buckets):
 def processFile(filePaths, granularity):
     dataList = readFiles(filePaths)
 
-    accList = getDataByDataType('accelerator', dataList)
+    accList = getDataBySensorType('accelerator', dataList)
 
     betterPrintData(accList)
 
@@ -94,7 +91,7 @@ def processFile(filePaths, granularity):
 
     return slices, y
 
-def printDataLables(filePath):
+def printDataLabels(filePath):
     statusCounter = {}
     dataList = readFile(filePath)
     for dt in dataList:
@@ -112,7 +109,7 @@ def betterPrint(filePath):
 
 def betterPrintData(dataList):
     message = ''
-    dataList = getDataByDataType('accelerator', dataList)
+    dataList = getDataBySensorType('accelerator', dataList)
 
     previousStatus = dataList[0]['status']
 
@@ -139,34 +136,5 @@ def betterPrintData(dataList):
 # betterPrint('/Users/jiusi/run.txt')
 # betterPrint('/Users/jiusi/doutui.txt')
 
-def extractStatus(filePath, type, status, start, end):
-    fileName = ntpath.basename(filePath)
-    dirName = ntpath.dirname(filePath)
-    outPath = dirName+'/'+fileName+'.rfn'
-    print 'extract to:', outPath
-
-    data = readFile(filePath)
-    data = getDataByDataType(type, data)
-    buckets = splitDataListByStatus(data)
-
-    for bucket in buckets:
-        if bucket[0]['status'] == status:
-            data = bucket
-
-    data = data[start:end]
-
-    f = open(outPath, 'w')
-    for d in data:
-        f.write(json.dumps(d)+'\n')
-    f.close()
 
 
-def mergeFile(filePaths):
-    dirName = ntpath.dirname(filePaths[0])
-    outPath = dirName +'/merge.txt'
-    print 'merge to:', outPath
-    f = open(outPath, 'w')
-    dataList = readFiles(filePaths)
-    for dt in dataList:
-        f.write(json.dumps(dt) + '\n')
-    f.close()

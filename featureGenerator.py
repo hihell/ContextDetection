@@ -106,4 +106,8 @@ def getFullFeatures(verticalAmplitude, horizontalMagnitude):
         print 'warning, verticalAmplitude is not at the same length as horizontalMagnitude'
 
     return [meanV, stdV, p75V, iqrV, meanH, stdH, coore[0]]
+#           0      1     2     3     4      5     6
 
+def getSomeFeatures(verticalAmplitude, horizontalMagnitude, featureList):
+    fl = getFullFeatures(verticalAmplitude, horizontalMagnitude)
+    return [fl[i] for i in featureList]
