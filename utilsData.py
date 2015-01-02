@@ -4,6 +4,7 @@ import json
 import numpy as np
 import ntpath
 import json
+import featureGenerator as fg
 
 STAT_CODE = {'Sitting':0, 'Driving':1, 'Riding':2, 'Walking':3, 'Running': 4}
 
@@ -15,21 +16,21 @@ def getDataBySensorType(datatype, list):
         gList = [ele for ele in list if ele[key] == 'gyro']
     elif 'source' in list[0]:
         key = 'source'
-        aList = [ele for ele in list if ele[key] == 'accelerator']
+        aList = [ele for ele in list if ele[key] == 'accelerometer']
         # old log does not have fused linear acceleration
         gList = [ele for ele in list if ele[key] == 'Gyroscope']
     else:
         print 'wrong data src format, no sensorName or source in it'
         return None
 
-    if(datatype == 'accelerator'):
+    if(datatype == 'accelerometer'):
         return aList
     elif(datatype == 'linacc'):
         return linList
     elif(datatype == 'gyro'):
         return gList
     else:
-        print 'wrong data type:', datatype, ' must be either accelerator, linacc or gyro'
+        print 'wrong data type:', datatype, ' must be either accelerometer, linacc or gyro'
         return None
 
 def readFile(filePath, isOld=False):
@@ -74,7 +75,7 @@ def assignClassToBucket(buckets):
 def processFile(filePaths, granularity):
     dataList = readFiles(filePaths)
 
-    accList = getDataBySensorType('accelerator', dataList)
+    accList = getDataBySensorType('accelerometer', dataList)
 
     betterPrintData(accList)
 
@@ -90,6 +91,17 @@ def processFile(filePaths, granularity):
     y = assignClassToBucket(slices)
 
     return slices, y
+
+def processAccelerationData(accDataBuckets):
+    vhList = []
+    for bucket in accDataBuckets:
+        # accList = ud.getDataByDataType('accelerometer', bucket)
+
+        regu = fg.regularizeSignal(bucket)
+        vhList.append(regu)
+
+    return vhList
+
 
 def printDataLabels(filePath):
     statusCounter = {}
@@ -109,7 +121,7 @@ def betterPrint(filePath):
 
 def betterPrintData(dataList):
     message = ''
-    dataList = getDataBySensorType('accelerator', dataList)
+    dataList = getDataBySensorType('accelerometer', dataList)
 
     previousStatus = dataList[0]['status']
 
@@ -118,11 +130,11 @@ def betterPrintData(dataList):
     for i, dt in enumerate(dataList):
         status = dt['status']
         if status != previousStatus:
-            message += str(' end at:' + str(i-1))
+            message += str(' ends at:' + str(i-1))
             message += str('|' + status + ' starts at:' + str(i))
             previousStatus = status
 
-    message += str('end at:' + str(len(dataList)))
+    message += str(' ends at:' + str(len(dataList)))
 
     print message
 

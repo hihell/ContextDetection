@@ -52,7 +52,7 @@ def mergeFile(filePaths, sensor):
     plotFile(outPath, sensor)
 
 
-def removeNoise(filePath, noiseLocations, sensor='accelerator'):
+def removeNoise(filePath, noiseLocations, sensor='accelerometer'):
 
     plotFile(filePath, sensor)
 

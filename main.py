@@ -25,12 +25,11 @@ def train(filePaths, classifier):
     buckets, y = ud.processFile(filePaths, GRAN_SAMPLE)
     trainData = []
 
-    for bucket in buckets:
-        # accList = ud.getDataByDataType('accelerator', bucket)
+    vhList = ud.processAccelerationData(buckets)
 
-        regu = fg.regularizeSignal(bucket)
-        verA = regu['verticalAmplitude']
-        horM = regu['horizontalMagnitude']
+    for vh in vhList:
+        verA = vh['verticalAmplitude']
+        horM = vh['horizontalMagnitude']
 
         # features = fg.getFullFeatures(verticalAmplitude=verA, horizontalMagnitude=horM)
         features = fg.getSomeFeatures(verA, horM, featureList)

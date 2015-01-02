@@ -12,10 +12,25 @@ from itertools import combinations
 # mesh
 MARGIN = .5
 
-def plotLines(list, axles, title=None):
-    fig = plt.figure()
-
+def plotAccLines(list, axles, title=None):
     dots = np.array([d['values'] for d in list])
+    plotLines(dots, axles, title)
+
+
+def plotVHLines(buckets, axles, title=None):
+    dots = []
+    for bucket in buckets:
+        vList = bucket['verticalAmplitude']
+        hList = bucket['horizontalMagnitude']
+
+        for v, h in zip(vList, hList):
+            dots.append([v, h])
+
+    dots = np.array(dots)
+    plotLines(dots, axles, title)
+
+def plotLines(dots, axles, title=None):
+    fig = plt.figure()
 
     subplotNum = len(axles)
     subplotIndex = 1
@@ -90,9 +105,9 @@ def plotFTResult(original, result, time, W):
 def plotFile(filePath):
     f = filePath
     dataList = ud.readFile(f)
-    accdata = ud.getDataBySensorType('accelerator', dataList)
+    accdata = ud.getDataBySensorType('accelerometer', dataList)
     ud.betterPrintData(accdata)
-    plotLines(accdata, [0,1,2], title=filePath)
+    plotAccLines(accdata, [0,1,2], title=filePath)
 
 
 # plotExample()

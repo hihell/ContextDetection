@@ -75,7 +75,7 @@ def getListsFromList(list):
         return aList, laList, gList
     elif 'source' in list[0]:
         key = 'source'
-        aList = [ele for ele in list if ele[key] == 'accelerator']
+        aList = [ele for ele in list if ele[key] == 'accelerometer']
         # old log does not have fused linear acceleration
         gList = [ele for ele in list if ele[key] == 'Gyroscope']
         return aList, None, gList
