@@ -19,6 +19,7 @@ featureList = range(0, 2)
 featureNames = ['meanV', 'stdV', 'p75V', 'iqrV', 'meanH', 'stdH', 'coore[0]']
 
 def train(filePaths, classifier):
+
     if not (isinstance(filePaths, list) or isinstance(filePaths, np.ndarray)):
         filePaths = [filePaths]
 
@@ -40,11 +41,11 @@ def train(filePaths, classifier):
     print score
     classifier.fit(trainData, y)
 
-    # fn = [featureNames[i] for i in featureList]
-    # up.plotDecisionBoundary(trainData, trainDataClass=y,
-    #                         testData=None, classifier=classifier,
-    #                         foil=[0,1], axisNames = fn,
-    #                         title=filePaths)
+    fn = [featureNames[i] for i in featureList]
+    up.plotDecisionBoundary(X=trainData, y=y,
+                            clf=classifier,
+                            foil=[0,1], axisNames = fn,
+                            title=filePaths)
 
     return classifier
 
@@ -56,7 +57,11 @@ def predict(filePaths, classifier, tagged=False):
     buckets, y = ud.processFile(filePaths, GRAN_SAMPLE)
 
     predictData = []
-    tags = []
+    predTags = []
+
+    VH = []
+    vhTags = []
+
 
     for bucket in buckets:
         regu = fg.regularizeSignal(bucket)
@@ -66,23 +71,41 @@ def predict(filePaths, classifier, tagged=False):
         # features = fg.getFullFeatures(verA, horM)
         features = fg.getSomeFeatures(verA, horM, featureList)
         predictData.append(features)
-        tags.append(ud.STAT_CODE[bucket[0]['status']])
+
+
+        tag = ud.STAT_CODE[bucket[0]['status']]
+
+        predTags.append(tag)
+        for v, h in zip(verA, horM):
+            VH.append([v, h])
+            vhTags.append(tag)
+
+    up.plotVH(VH, y=vhTags, title=filePaths)
 
     prediction = classifier.predict(predictData)
     print "pred:", prediction
-    print "tags:", np.array(tags)
+    print "tags:", np.array(predTags)
 
     if tagged:
         correctCount = 0
-        for p, t in zip(prediction, tags):
+        for p, t in zip(prediction, predTags):
             if p == t:
                 correctCount += 1
         print "prediction correct rate:", correctCount / len(prediction)
+
+    fn = [featureNames[i] for i in featureList]
+    up.plotDecisionBoundary(predictData,
+                            prediction,
+                            classifier,
+                            foil=[0,1],
+                            axisNames=fn,
+                            title=filePaths)
+
     return prediction
 
 clf_tree = tree.DecisionTreeClassifier()
-clf_svm_rbf = svm.SVC(kernel='rbf', C=2)
-clf_svm_lin = svm.SVC(kernel='linear', C=2)
+clf_svm_rbf = svm.SVC(kernel='rbf', C=100000000)
+clf_svm_lin = svm.SVC(kernel='linear', C=5)
 
 # trainData = './data/train1.txt'
 trainData = './data/train2.txt'

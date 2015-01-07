@@ -8,6 +8,14 @@ import featureGenerator as fg
 
 STAT_CODE = {'Sitting':0, 'Driving':1, 'Riding':2, 'Walking':3, 'Running': 4}
 
+def getStatusByCode(code):
+    for status, c in STAT_CODE.iteritems():
+        if c == code:
+            return status
+    print 'did not find status by code:', code
+    return None
+
+
 def getDataBySensorType(datatype, list):
     if 'sensorName' in list[0]:
         key = 'sensorName'
@@ -137,6 +145,8 @@ def betterPrintData(dataList):
     message += str(' ends at:' + str(len(dataList)))
 
     print message
+
+
 
 
 # betterPrint('/Users/jiusi/walkingandsitting1221.txt')

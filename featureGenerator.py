@@ -12,7 +12,7 @@ def getSpectrumFeature(fft_signal, W, dimension):
     return indexes, freqs
 
 
-def smoothAsIPulse(signal, pulseLen, gapLen):
+def smoothAsPulse(signal, pulseLen, gapLen):
     smoothed = []
     for i in range(0, len(signal) - 1):
         for p in range(0, pulseLen):
@@ -85,7 +85,6 @@ def regularizeSignal(accData):
 
         horizontalMagnitude.append(magnitude)
         verticalAmplitude.append(amplitude)
-
 
     result['regularized'] = regularized
     result['verticalAmplitude'] = verticalAmplitude
