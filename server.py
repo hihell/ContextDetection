@@ -33,10 +33,6 @@ def predict(req):
 
     X = d['X']
 
-    y = None
-    if 'y' in d:
-        y = d['y']
-
     distinct_id = 'default_distinct_id'
     if 'req_id' in d:
         result['req_id'] = d['req_id']
@@ -50,14 +46,7 @@ def predict(req):
         result['responseOk'] = False
         result['msg'] = 'X must be a array instead of:' + str(X)
 
-    result['X'] = X
-    if y:
-        result['y'] = d['y']
-        rate = ud.getCorrectRate(d['y'], pred)
-        result['correct_rate'] = rate
-
-
-    log(distinct_id, 'predict', result)
+    logPrediction(distinct_id, 'predict', d, pred)
 
     return JsonResponse(result)
 
@@ -66,8 +55,18 @@ def test():
     d['status'] = 'ok'
     return JsonResponse(d)
 
-def log(distinct_id, name, body):
-    mp.track(distinct_id=distinct_id, event_name=name, properties=body)
+
+def logPrediction(distinct_id, name, reqBody, prediction):
+    logProperties = {}
+
+    logProperties['X'] = reqBody['X']
+    logProperties['prediction'] = prediction.tolist()
+    if 'y' in reqBody:
+        logProperties['y'] = reqBody['y']
+        rate = ud.getCorrectRate(reqBody['y'], prediction)
+        logProperties['correct_rate'] = rate
+
+    mp.track(distinct_id, name, logProperties)
 
 
 urlpatterns = patterns('',
