@@ -92,7 +92,7 @@ def regularizeSignal(accData):
     return result
 
 
-def getFullFeatures(verticalAmplitude, horizontalMagnitude):
+def getVHFullFeatures(verticalAmplitude, horizontalMagnitude):
     meanV = np.average(verticalAmplitude)
     stdV = np.std(verticalAmplitude)
     p75V = np.percentile(verticalAmplitude, 75)
@@ -108,21 +108,8 @@ def getFullFeatures(verticalAmplitude, horizontalMagnitude):
 #           0      1     2     3     4      5     6
 
 def getSomeFeatures(verticalAmplitude, horizontalMagnitude, featureList):
-    fl = getFullFeatures(verticalAmplitude, horizontalMagnitude)
+    fl = getVHFullFeatures(verticalAmplitude, horizontalMagnitude)
     return [fl[i] for i in featureList]
-
-
-def getVHByBuckets(buckets):
-    VH = []
-
-    for bucket in buckets:
-        regu = regularizeSignal(bucket)
-        verA = regu['verticalAmplitude']
-        horM = regu['horizontalMagnitude']
-
-        VH.append([verA, horM])
-
-    return VH
 
 def getFeatureByVH(VH, featureList):
     X = []
@@ -134,3 +121,94 @@ def getFeatureByVH(VH, featureList):
             )
         X.append(x)
     return X
+
+def getFeatureBySS(SS):
+    X = []
+    for ss in SS:
+        x = getSSFullFeatures(ss)
+        X.append(x)
+    return X
+
+def getSSFullFeatures(sqrWindow):
+    winSize = len(sqrWindow)
+
+    sqrWindow = np.array(sqrWindow)
+
+    mean = np.average(sqrWindow)
+    std = np.std(sqrWindow)
+    min = np.min(sqrWindow)
+    max = np.max(sqrWindow)
+    p10 = np.percentile(sqrWindow, 10)
+    p25 = np.percentile(sqrWindow, 25)
+    p50 = np.percentile(sqrWindow, 50)
+    p75 = np.percentile(sqrWindow, 75)
+    p90 = np.percentile(sqrWindow, 90)
+
+    sorted = np.sort(sqrWindow)
+
+    i5 = int(winSize * .05)
+    sb5 = sum(sorted[:i5])
+    ssb5 = sum(sorted[:i5] ** 2)
+
+    i10 = int(winSize * .1)
+    sb10 = sum(sorted[:i10])
+    ssb10 = sum(sorted[:i10] ** 2)
+
+    i25 = int(winSize * .25)
+    sb25 = sum(sorted[:i25])
+    ssb25 = sum(sorted[:i25] ** 2)
+
+    i75 = int(winSize * .75)
+    sa75 = sum(sorted[i75:])
+    ssa75 = sum(sorted[i75:] ** 2)
+
+    i90 = int(winSize * .9)
+    sa90 = sum(sorted[i90:])
+    ssa90 = sum(sorted[i90:] ** 2)
+
+    i95 = int(winSize * .95)
+    sa95 = sum(sorted[i95:])
+    ssa95 = sum(sorted[i95:] ** 2)
+
+    return [
+        mean,
+        std,
+        min,
+        max,
+        p10,
+        p25,
+        p50,
+        p75,
+        p90,
+        sb5, ssb5,
+        sb10,ssb10,
+        sb25, ssb25,
+        sa75, ssa75,
+        sa90, ssa90,
+        sa95, ssa95
+    ]
+
+
+
+def accToVH(buckets):
+    VH = []
+    for bucket in buckets:
+        regu = regularizeSignal(bucket)
+        verA = regu['verticalAmplitude']
+        horM = regu['horizontalMagnitude']
+
+        VH.append([verA, horM])
+
+    return VH
+
+def accToSqrSum(buckets):
+
+    ssBuckets = []
+    for bucket in buckets:
+        ssBucket = []
+        for data in bucket:
+            acc = data['values']
+            sqrSum = np.sqrt(np.dot(acc, acc))
+            ssBucket.append(sqrSum)
+        ssBuckets.append(ssBucket)
+    return ssBuckets

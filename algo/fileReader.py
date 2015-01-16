@@ -83,7 +83,6 @@ def getListsFromList(list):
         print 'fucked!'
 
 
-
 def getXYZ(list):
     if 'data' in list[0]:
         key = 'data'

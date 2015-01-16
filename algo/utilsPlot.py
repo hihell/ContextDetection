@@ -257,8 +257,6 @@ def plotAllDecisionBoundary(trainData, testData, classifier):
         plt.subplot(columns, rows, i + 1)
         plt.subplots_adjust(wspace=0.4, hspace=0.4)
 
-
-
 def plotDecisionBoundary(X, y, clf, foil, axisNames=None, title=None):
 
     if len(X[0]) > 2:
@@ -330,10 +328,7 @@ def plotConfusionMatrix(cm):
     plt.xlabel('Predicted label')
     plt.show()
 
-
-
 def plotConfusionMatrix(trueTag, predTag):
-
     cm = np.zeros(shape=(len(param.STAT_CODE), len(param.STAT_CODE)))
     for i, j in zip(trueTag, predTag):
         cm[i][j] += 1

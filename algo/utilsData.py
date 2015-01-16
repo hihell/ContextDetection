@@ -5,6 +5,7 @@ __author__ = 'jiusi'
 
 import json
 import parameters as param
+import numpy as np
 
 
 def getStatusByCode(code):
@@ -13,7 +14,6 @@ def getStatusByCode(code):
             return status
     print 'did not find status by code:', code
     return None
-
 
 def getDataBySensorType(datatype, list):
     if 'sensorName' in list[0]:
@@ -73,12 +73,22 @@ def splitDataListByStatus(dataList):
     return [buckets[key] for key in buckets]
 
 
-def assignClassToBucket(buckets):
+def assignL2ClassToBucket(buckets):
     y = []
     for bucket in buckets:
         data = bucket[0]
         status = data['status']
         y.append(param.STAT_DICT[status])
+    return y
+
+def assignL1ClassToBucket(buckets):
+    y = []
+    for buckets in buckets:
+        data = buckets[0]
+        status = data['status']
+        l1 = param.STAT_DICT[status]
+        l2 = param.STAT_CLASS_MAP[l1]
+        y.append(l2)
     return y
 
 def processFile(filePath, granularity):
@@ -97,19 +107,10 @@ def processFile(filePath, granularity):
         list = splitDataListBySampleGranularity(granularity, bucket)
         slices.extend(list)
 
-    y = assignClassToBucket(slices)
+    y2 = assignL2ClassToBucket(slices)
+    y1 = assignL1ClassToBucket(slices)
 
-    return slices, y
-
-def processAccelerationData(accDataBuckets):
-    vhList = []
-    for bucket in accDataBuckets:
-        # accList = ud.getDataByDataType('accelerometer', bucket)
-
-        regu = fg.regularizeSignal(bucket)
-        vhList.append(regu)
-
-    return vhList
+    return slices, y2, y1
 
 def printDataLabels(filePath):
     statusCounter = {}
@@ -121,7 +122,6 @@ def printDataLabels(filePath):
         else:
             statusCounter[status] = 1
     print statusCounter
-
 
 def getFileStatus(filePath):
     dataList = readFile(filePath)
