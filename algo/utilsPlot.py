@@ -13,6 +13,9 @@ import featureGenerator as fg
 
 # Data manipulation:
 
+activeCode = param.STAT_CLASS_NAME['Active']
+inactiveCode = param.STAT_CLASS_NAME['Inactive']
+
 def make_segments(x, y):
     '''
     Create list of line segments from x and y coordinates, in the correct format for LineCollection:
@@ -328,7 +331,7 @@ def plotConfusionMatrix(cm):
     plt.xlabel('Predicted label')
     plt.show()
 
-def plotConfusionMatrix(trueTag, predTag):
+def plotConfusionMatrix(trueTag, predTag, title):
     cm = np.zeros(shape=(len(param.STAT_CODE), len(param.STAT_CODE)))
     for i, j in zip(trueTag, predTag):
         cm[i][j] += 1
@@ -336,6 +339,7 @@ def plotConfusionMatrix(trueTag, predTag):
     print cm
 
     fig = plt.figure()
+    fig.suptitle(title)
     ax = fig.add_subplot(111)
     cax = ax.matshow(cm, interpolation='nearest')
     fig.colorbar(cax)
@@ -346,3 +350,37 @@ def plotConfusionMatrix(trueTag, predTag):
     ax.set_yticklabels(['']+param.STAT_NAME)
 
     plt.show()
+
+def plotConfusionMatrixSS(y, p):
+    plotConfusionMatrix(y, p, 'total prediction')
+
+    y1 = [param.STAT_CLASS_MAP[i] for i in y if i in param.STAT_CLASS_MAP]
+    p1 = [param.STAT_CLASS_MAP[i] for i in p if i in param.STAT_CLASS_MAP]
+
+    print "layer 1 prediction correct rate:", ud.getCorrectRate(y1, p1)
+    plotConfusionMatrix(y1, p1, 'layer1 prediction')
+
+    y2a = []
+    p2a = []
+    y2in = []
+    p2in = []
+    for trueTag, pred in zip(y, p):
+        if param.STAT_CLASS_MAP[trueTag] == activeCode:
+            y2a.append(trueTag)
+            p2a.append(pred)
+        elif param.STAT_CLASS_MAP[trueTag] == inactiveCode:
+            y2in.append(trueTag)
+            p2in.append(pred)
+
+
+    if len(y2a) > 0:
+        print "layer 2 a active prediction correct rate:", ud.getCorrectRate(y2a, p2a)
+        plotConfusionMatrix(y2a, p2a, 'layer 2 active prediction')
+
+    if len(y2in) > 0:
+        print "layer 2 a inactive prediction correct rate:", ud.getCorrectRate(y2in, p2in)
+        plotConfusionMatrix(y2in, p2in, 'layer 2 inactive prediction')
+
+
+
+

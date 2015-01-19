@@ -4,7 +4,7 @@ import time
 
 from sklearn.externals import joblib
 
-# joblib.dump(clf, 'my_model.pkl', compress=9)
+# joblib.dump(clfVH, 'my_model.pkl', compress=9)
 
 from sklearn import cross_validation
 

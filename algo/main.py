@@ -22,13 +22,13 @@ activeCode = param.STAT_CLASS_NAME['Active']
 inactiveCode = param.STAT_CLASS_NAME['Inactive']
 
 
-def loadClassifier(clfPath=param.CLASSIFIER_PATH):
+def loadClassifier(clfPath):
     clf = joblib.load(clfPath)
     print 'classifier recovered from:', clfPath
     return clf
 
-def saveClassifier(clf):
-    s = joblib.dump(clf, param.CLASSIFIER_PATH)
+def saveClassifier(clf, savePath):
+    s = joblib.dump(clf, savePath)
     print 'classifier saved at:', s
 
 def trainVH(filePath, clf, featureList=range(0,7), save=False):
@@ -48,7 +48,7 @@ def trainVH(filePath, clf, featureList=range(0,7), save=False):
                             foil=[0,1], axisNames = fn,
                             title=filePath)
     if save:
-        saveClassifier(clf)
+        saveClassifier(clf, param.CLASSIFIER_VH_PATH)
     return clf
 
 def trainSS(filePath, clf1, clf2Active, clf2Inactive, save=False):
@@ -84,13 +84,47 @@ def trainSS(filePath, clf1, clf2Active, clf2Inactive, save=False):
     clf2Active.fit(activeData, aL2)
     clf2Inactive.fit(inactiveData, iL2)
 
+    if save:
+        saveClassifier(clf1, param.CLASSIFIER_SS_L1_PATH)
+        saveClassifier(clf2Active, param.CLASSIFIER_SS_L2A_PATH)
+        saveClassifier(clf2Inactive, param.CLASSIFIER_SS_L2I_PATH)
+
     return clf1, clf2Active, clf2Inactive
 
-def predict_service(X, classifier):
-    pred = classifier.predict(X)
+def predict_feature_service(X, clfVH):
+    # TODO change this to clfVH tree
+    pred = clfVH.predict(X)
     return pred
 
+def predict_raw_service(rawData, clfDict, clfType):
+    buckets = ud.processRawData(rawData, param.GRAN_SAMPLE)
+
+    print "len(buckets):", len(buckets)
+
+    result = {}
+
+    if 'VH' in clfType:
+        clf = clfDict['VH']
+
+        VH = fg.accToVH(buckets)
+        X = fg.getFeatureByVH(VH, param.FEATURES_SERVICE)
+
+        result['predVH'] = clf.predict(X).tolist()
+
+    if 'SS' in clfType:
+        clf1 = clfDict['SSClf1']
+        clf2Active = clfDict['SSClf2Active']
+        clf2Inactive = clfDict['SSClf2Inactive']
+
+        SS = fg.accToSqrSum(buckets)
+        X  = fg.getFeatureBySS(SS)
+
+        result['predSS'] = predictSS(X, clf1, clf2Active, clf2Inactive)
+
+    return result
+
 def predict_testVH(filePath, clf, featureList=range(0,7), tagged=False):
+
     ud.printDataLabels(filePath)
 
     buckets, y, drop = ud.processFile(filePath, param.GRAN_SAMPLE)
@@ -123,36 +157,43 @@ def predict_testSS(filePath, clf1, clf2Active, clf2Inactive, tagged=False):
 
     SS = fg.accToSqrSum(buckets)
     X = fg.getFeatureBySS(SS)
-    p1 = clf1.predict(X)
 
-    activeData = []
-    activeTag = []
-    inactiveData = []
-    inactiveTag = []
-
-    for data, l1, l2 in zip(X, p1, y2):
-        if l1 == inactiveCode:
-            inactiveData.append(data)
-            inactiveTag.append(l2)
-        elif l1 == activeCode:
-            activeData.append(data)
-            activeTag.append(l2)
-
-    p2Active, p2Inactive = [], []
-    if len(activeData) > 0:
-        p2Active = clf2Active.predict(activeData)
-    if len(inactiveData) > 0:
-        p2Inactive = clf2Inactive.predict(inactiveData)
+    p = predictSS(X, clf1, clf2Active, clf2Inactive)
 
     if tagged:
-        up.plotConfusionMatrix(y1, p1)
-        print "layer 1 prediction correct rate:", ud.getCorrectRate(y1, p1)
+        up.plotConfusionMatrixSS(y2, p)
 
-        if len(p2Active) > 0:
-            up.plotConfusionMatrix(activeTag, p2Active)
-            print "layer 2 a active prediction correct rate:", ud.getCorrectRate(activeTag, p2Active)
-        if len(p2Inactive) > 0:
-            up.plotConfusionMatrix(inactiveTag, p2Inactive)
-            print "layer 2 b inactive prediction correct rate:", ud.getCorrectRate(inactiveTag, p2Inactive)
+    return p
 
-    return p1, p2Active, p2Inactive
+def predictSS(X, clf1, clf2Active, clf2Inactive):
+    X = np.array(X)
+
+    p1 = clf1.predict(X)
+
+    actIndexes = []
+    inaIndexes = []
+
+    # setup true tag for confusion matrix
+    for i, (data, l1) in enumerate(zip(X, p1)):
+        if l1 == inactiveCode:
+            inaIndexes.append(i)
+        elif l1 == activeCode:
+            actIndexes.append(i)
+
+    p2Active, p2Inactive = [], []
+    activeData = X[actIndexes]
+    inactiveData = X[inaIndexes]
+    if len(actIndexes) > 0:
+        p2Active = clf2Active.predict(activeData)
+    if len(inaIndexes) > 0:
+        p2Inactive = clf2Inactive.predict(inactiveData)
+
+    pIndex = np.concatenate((actIndexes,inaIndexes), axis=0)
+    pred = np.concatenate((p2Active, p2Inactive), axis=0)
+
+    zipped = zip(pIndex, pred)
+    zipped.sort(key = lambda t:t[0])
+
+    p = [prediction for index, prediction in zipped]
+
+    return p

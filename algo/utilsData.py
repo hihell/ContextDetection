@@ -15,6 +15,12 @@ def getStatusByCode(code):
     print 'did not find status by code:', code
     return None
 
+def getL1ByL2(l2List):
+    l1List = []
+    for l2 in l2List:
+        l1List.append(param.STAT_CLASS_MAP[l2])
+    return l1List
+
 def getDataBySensorType(datatype, list):
     if 'sensorName' in list[0]:
         key = 'sensorName'
@@ -111,6 +117,17 @@ def processFile(filePath, granularity):
     y1 = assignL1ClassToBucket(slices)
 
     return slices, y2, y1
+
+def processRawData(data, granularity):
+    accList = getDataBySensorType('accelerometer', data)
+
+    print getDataListStatus(accList)
+    print 'len datalist:', len(data), ' len accList:', len(accList)
+
+    return splitDataListBySampleGranularity(granularity, accList)
+
+
+
 
 def printDataLabels(filePath):
     statusCounter = {}

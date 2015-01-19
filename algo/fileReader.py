@@ -286,7 +286,7 @@ print 'average top freq ampli d2:', np.average([ele[1] for ele in d2])
 
 clf = svm.SVC(kernel='rbf', C=1)
 
-# plotUtils.testColormesh(clf, [0,1])
+# plotUtils.testColormesh(clfVH, [0,1])
 
 scores = cross_validation.cross_val_score(clf, training, target, cv=5)
 
