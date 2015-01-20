@@ -97,7 +97,7 @@ def predict_feature_service(X, clfVH):
     return pred
 
 def predict_raw_service(rawData, clfDict, clfType):
-    buckets = ud.processRawData(rawData, param.GRAN_SAMPLE)
+    buckets, y2 = ud.processRawData(rawData, param.GRAN_SAMPLE)
 
     print "len(buckets):", len(buckets)
 
@@ -121,7 +121,7 @@ def predict_raw_service(rawData, clfDict, clfType):
 
         result['predSS'] = predictSS(X, clf1, clf2Active, clf2Inactive)
 
-    return result
+    return X, y2, result
 
 def predict_testVH(filePath, clf, featureList=range(0,7), tagged=False):
 

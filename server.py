@@ -8,6 +8,8 @@ import algo.main as algoMain
 import algo.utilsData as ud
 import algo.parameters as param
 
+import numpy as np
+
 from django.conf import settings
 from django.conf.urls import patterns, url
 from django.core.management import execute_from_command_line
@@ -47,15 +49,23 @@ def predictByFeature(req):
         result['responseOk'] = False
         result['msg'] = 'X must be a array instead of:' + str(X)
 
-    logPrediction(distinct_id, 'predict', d, pred)
+    logFeaturePrediction(distinct_id, 'predictFeature', d, pred)
 
     return JsonResponse(result)
 
 @csrf_exempt
 def predictByRawData(req):
+
     d = json.loads(req.body)
     result = {}
 
+
+    distinct_id = 'default_distinct_id'
+    if 'req_id' in d:
+        result['req_id'] = d['req_id']
+
+    rawData = None
+    X = None
     if 'rawData' in d and isinstance(d['rawData'], list):
         rawData = d['rawData']
         clfType = ['SS']
@@ -68,11 +78,13 @@ def predictByRawData(req):
         clfDict['SSClf2Active'] = clfSS_L2A
         clfDict['SSClf2Inactive'] = clfSS_L2I
 
-        result = algoMain.predict_raw_service(rawData, clfDict=clfDict, clfType=clfType)
+        X, y2, result = algoMain.predict_raw_service(rawData, clfDict=clfDict, clfType=clfType)
         result['responseOk'] = True
     else:
         result['responseOk'] = False
         result['msg'] = 'rawData don not exit or not an array'
+
+    logRawPrediction(distinct_id, 'predictRawData', rawData, X, result, y2)
 
     return JsonResponse(result)
 
@@ -82,7 +94,7 @@ def test():
     d['status'] = 'ok'
     return JsonResponse(d)
 
-def logPrediction(distinct_id, name, reqBody, prediction):
+def logFeaturePrediction(distinct_id, name, reqBody, prediction):
     logProperties = {}
 
     logProperties['X'] = reqBody['X']
@@ -91,6 +103,24 @@ def logPrediction(distinct_id, name, reqBody, prediction):
         logProperties['y'] = reqBody['y']
         rate = ud.getCorrectRate(reqBody['y'], prediction)
         logProperties['correct_rate'] = rate
+
+    mp.track(distinct_id, name, logProperties)
+
+def logRawPrediction(distinct_id, name, rawData, X, result, y=None):
+    logProperties = {}
+
+    logProperties['rawData'] = rawData
+    logProperties['X'] = X
+
+    logProperties['predVH'] = result['predVH']
+    logProperties['predSS'] = result['predSS']
+
+    if y:
+        logProperties['y'] = y
+        rateVH = ud.getCorrectRate(y, result['predVH'])
+        rateSS = ud.getCorrectRate(y, result['predSS'])
+        logProperties['correct_rate_VH'] = rateVH
+        logProperties['correct_rate_SS'] = rateSS
 
     mp.track(distinct_id, name, logProperties)
 

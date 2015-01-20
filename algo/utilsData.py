@@ -83,18 +83,24 @@ def assignL2ClassToBucket(buckets):
     y = []
     for bucket in buckets:
         data = bucket[0]
-        status = data['status']
-        y.append(param.STAT_DICT[status])
+        if 'status' in data:
+            status = data['status']
+            y.append(param.STAT_DICT[status])
+        else:
+            return None
     return y
 
 def assignL1ClassToBucket(buckets):
     y = []
     for buckets in buckets:
         data = buckets[0]
-        status = data['status']
-        l1 = param.STAT_DICT[status]
-        l2 = param.STAT_CLASS_MAP[l1]
-        y.append(l2)
+        if 'status' in data:
+            status = data['status']
+            l1 = param.STAT_DICT[status]
+            l2 = param.STAT_CLASS_MAP[l1]
+            y.append(l2)
+        else:
+            return None
     return y
 
 def processFile(filePath, granularity):
@@ -124,7 +130,9 @@ def processRawData(data, granularity):
     print getDataListStatus(accList)
     print 'len datalist:', len(data), ' len accList:', len(accList)
 
-    return splitDataListBySampleGranularity(granularity, accList)
+    buckets = splitDataListBySampleGranularity(granularity, accList)
+    y2 = assignL2ClassToBucket(buckets)
+    return buckets, y2
 
 
 
