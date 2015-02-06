@@ -1,4 +1,4 @@
-from algo import utilsData as ud
+from algoMotion import utilsData as ud
 
 __author__ = 'jiusi'
 

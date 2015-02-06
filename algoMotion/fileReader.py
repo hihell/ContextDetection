@@ -1,5 +1,5 @@
 from __future__ import division
-from algo import utilsPlot
+from algoMotion import utilsPlot
 
 __author__ = 'jiusi'
 

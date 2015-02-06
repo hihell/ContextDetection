@@ -1,5 +1,5 @@
 from __future__ import division
-from algo import featureGenerator as fg
+from algoMotion import featureGenerator as fg
 
 __author__ = 'jiusi'
 

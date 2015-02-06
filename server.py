@@ -1,14 +1,14 @@
 import os
 import sys
 
+from algoMotion import main as algoMain
+
+
 BASE_PATH = os.path.dirname(__file__)
 
 import json
-import algo.main as algoMain
-import algo.utilsData as ud
-import algo.parameters as param
-
-import numpy as np
+import algoMotion.utilsData as ud
+import algoMotion.parameters as param
 
 from django.conf import settings
 from django.conf.urls import patterns, url
