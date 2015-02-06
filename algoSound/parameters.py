@@ -1,7 +1,15 @@
 __author__ = 'jiusi'
 
 xmlPath = '/Users/jiusi/dares_g1.1/dares_g1.1_noxmlns.xml'
-CLASSIFIER_GMM = 'clfGMM/clf.pkl'
+CLF_GMM = 'clfGMM/clf.pkl'
+CLF_KNN = 'clfKNN/clf.pkl'
+
+CLF_GMM_TEST = '../clfGMM/clf.pkl'
+CLF_KNN_TEST = '../clfKNN/clf.pkl'
+
+N_MFCC = 13
+N_COMPONENTS = 30
+N_NEIGHBORS = 3
 
 fileContextMap = {
     "busy_street_1": {"L1":0, "L2":0},
@@ -109,6 +117,12 @@ fileContextMap = {
     "study_7":{"L1":5, "L2":12},
     "study_8":{"L1":5, "L2":12},
     "study_9":{"L1":5, "L2":12}
+}
+
+
+testSet = {
+    "busy_street_5": {"L1":0, "L2":0},
+    "living_room_24":{"L1":1,"L2":3},
 }
 
 L1ContextIdNameMap = {
