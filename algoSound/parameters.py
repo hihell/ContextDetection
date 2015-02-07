@@ -1,6 +1,7 @@
 __author__ = 'jiusi'
 
 xmlPath = '/Users/jiusi/dares_g1.1/dares_g1.1_noxmlns.xml'
+audioRoot = '/Users/jiusi/dares_g1.1/dares_g1/'
 CLF_GMM = 'clfGMM/clf.pkl'
 CLF_KNN = 'clfKNN/clf.pkl'
 
@@ -10,6 +11,10 @@ CLF_KNN_TEST = '../clfKNN/clf.pkl'
 N_MFCC = 13
 N_COMPONENTS = 30
 N_NEIGHBORS = 3
+
+K_FOLD = 5
+
+FRAME_IN_SEC = 10
 
 fileContextMap = {
     "busy_street_1": {"L1":0, "L2":0},

@@ -5,16 +5,13 @@ __author__ = 'jiusi'
 
 import utilsData as ud
 import utilsPlot as up
+import utils
 import parameters as param
 import featureGenerator as fg
 
 import numpy as np
-
-from sklearn import svm, tree
 from sklearn.cross_validation import cross_val_score
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.externals import joblib
-import pickle
+
 
 featureNames = ['meanV', 'stdV', 'p75V', 'iqrV', 'meanH', 'stdH', 'coore[0]']
 
@@ -22,14 +19,6 @@ activeCode = param.STAT_CLASS_NAME['Active']
 inactiveCode = param.STAT_CLASS_NAME['Inactive']
 
 
-def loadClassifier(clfPath):
-    clf = joblib.load(clfPath)
-    print 'classifier recovered from:', clfPath
-    return clf
-
-def saveClassifier(clf, savePath):
-    s = joblib.dump(clf, savePath)
-    print 'classifier saved at:', s
 
 def trainVH(filePath, clf, featureList=range(0,7), save=False):
 
@@ -48,7 +37,7 @@ def trainVH(filePath, clf, featureList=range(0,7), save=False):
                             foil=[0,1], axisNames = fn,
                             title=filePath)
     if save:
-        saveClassifier(clf, param.CLASSIFIER_VH_PATH)
+        utils.saveClassifier(clf, param.CLASSIFIER_VH_PATH)
     return clf
 
 def trainSS(filePath, clf1, clf2Active, clf2Inactive, save=False):
@@ -85,9 +74,9 @@ def trainSS(filePath, clf1, clf2Active, clf2Inactive, save=False):
     clf2Inactive.fit(inactiveData, iL2)
 
     if save:
-        saveClassifier(clf1, param.CLASSIFIER_SS_L1_PATH)
-        saveClassifier(clf2Active, param.CLASSIFIER_SS_L2A_PATH)
-        saveClassifier(clf2Inactive, param.CLASSIFIER_SS_L2I_PATH)
+        utils.saveClassifier(clf1, param.CLASSIFIER_SS_L1_PATH)
+        utils.saveClassifier(clf2Active, param.CLASSIFIER_SS_L2A_PATH)
+        utils.saveClassifier(clf2Inactive, param.CLASSIFIER_SS_L2I_PATH)
 
     return clf1, clf2Active, clf2Inactive
 
