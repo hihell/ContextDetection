@@ -1,12 +1,20 @@
 __author__ = 'jiusi'
 
 xmlPath = '/Users/jiusi/dares_g1.1/dares_g1.1_noxmlns.xml'
+jsonPath = '/Users/jiusi/dares_g1.1/audio.json'
 audioRoot = '/Users/jiusi/dares_g1.1/dares_g1/'
-CLF_GMM = 'clfGMM/clf.pkl'
-CLF_KNN = 'clfKNN/clf.pkl'
 
-CLF_GMM_TEST = '../clfGMM/clf.pkl'
-CLF_KNN_TEST = '../clfKNN/clf.pkl'
+CLF_GMM_MFCC = {'name':'CLF_GMM_MFCC', 'path':'clfGMM_MFCC/clf.pkl'}
+CLF_GMM_MFCC_DELTA ={'name':'CLF_GMM_MFCC_DELTA', 'path': 'clfGMM_MFCC_DELTA/clf.pkl'}
+CLF_GMM_MFCC_DELTA2 ={'name': 'CLF_GMM_MFCC_DELTA2', 'path': 'clfGMM_MFCC_DELTA2/clf.pkl'}
+
+CLF_KNN_MFCC = {'name': 'CLF_KNN_MFCC' ,'path': 'clfKNN_MFCC/clf.pkl'}
+CLF_KNN_MFCC_DELTA = {'name': 'CLF_KNN_MFCC_DELTA', 'path': 'clfKNN_MFCC_DELTA/clf.pkl'}
+CLF_KNN_MFCC_DELTA2 = {'name': 'CLF_KNN_MFCC_DELTA2', 'path': 'clfKNN_MFCC_DELTA2/clf.pkl'}
+
+# CLF_GMM_TEST = '../clfGMM/clf.pkl'
+# CLF_KNN_TEST = '../clfKNN/clf.pkl'
+
 
 N_MFCC = 13
 N_COMPONENTS = 30
@@ -130,6 +138,16 @@ testSet = {
     "living_room_24":{"L1":1,"L2":3},
 }
 
+
+testDifferentMic = {
+    "walk_0":{"L1":0, "L2":14},
+    "walk_1":{"L1":0, "L2":14},
+    "walk_2":{"L1":0, "L2":14},
+    "sub_0":{"L1":0, "L2":13},
+    "sub_1":{"L1":0, "L2":13}
+}
+
+
 L1ContextIdNameMap = {
     0:"outside",
     1:"home",
@@ -153,4 +171,6 @@ L2ContextIdNameMap = {
     10:"supermarket",
     11:"shop",
     12:"study quite office",
+    13:"subway",
+    14:"walk"
 }

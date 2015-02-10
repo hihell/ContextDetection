@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/PostureDetection.iml" filepath="$PROJECT_DIR$/.idea/PostureDetection.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/ContextDetection.iml" filepath="$PROJECT_DIR$/.idea/ContextDetection.iml" />
     </modules>
   </component>
 </project>

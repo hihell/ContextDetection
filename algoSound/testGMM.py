@@ -1,5 +1,6 @@
 __author__ = 'jiusi'
 
+
 import numpy as np
 from sklearn import mixture
 from sklearn.neighbors import NearestNeighbors, KNeighborsClassifier
@@ -9,7 +10,8 @@ from sklearn import cross_validation
 import parameters as param
 import featureGenerator as fg
 
-import utils
+from utils import utils
+
 import utilsData
 
 def getTags(fileGroupedX, fileGroupedY):
@@ -36,24 +38,62 @@ def trainGMM(X, n_components):
     # print 'np.round(g.covars_, 2):', np.round(g.covars_, 2)
     return g
 
-def testKNN(rate, fileGroupedSig, fileGroupedY, frameTime):
+def trainTestClfs(rate, fileGroupedSig, fileGroupedY, frameTime, saveWhom):
     noDeltaX, y = fg.getXy(rate, fileGroupedSig, fileGroupedY, frameTime, [])
     withDeltaX, y = fg.getXy(rate, fileGroupedSig, fileGroupedY, frameTime, ['mfccDelta'])
     withDelta2X, y = fg.getXy(rate, fileGroupedSig, fileGroupedY,  frameTime, ['mfccDelta', 'mfccDelta2'])
+    print 'feature retrieved'
 
     knnNoDelta = KNeighborsClassifier()
     knnWithDelta = KNeighborsClassifier()
     knnWithDelta2 = KNeighborsClassifier()
 
-    kNDScore = cross_validation.cross_val_score(knnNoDelta, X=noDeltaX, y=y, cv=param.K_FOLD)
-    kDScore = cross_validation.cross_val_score(knnWithDelta, X=withDeltaX, y=y, cv=param.K_FOLD)
-    kD2Score = cross_validation.cross_val_score(knnWithDelta2, X=withDelta2X, y=y, cv=param.K_FOLD)
-
-    print 'with only mfcc:', kNDScore
-    print 'with mfcc, mfcc delta', kDScore
-    print 'with mfcc, mfcc delta and mfcc delta 2nd order', kD2Score
+    gmmNoDelta = mixture.GMM(n_components=param.N_COMPONENTS)
+    gmmWithDelta = mixture.GMM(n_components=param.N_COMPONENTS)
+    gmmWithDelta2 = mixture.GMM(n_components=param.N_COMPONENTS)
 
 
+    if param.CLF_KNN_MFCC['name'] in saveWhom:
+        knnNoDelta.fit(noDeltaX, y)
+        utils.saveClassifier(knnNoDelta, param.CLF_KNN_MFCC['path'])
+        print 'clf trained for feature contains only mfcc finished'
+
+        kNDScore = cross_validation.cross_val_score(knnNoDelta, X=noDeltaX, y=y, cv=param.K_FOLD)
+        print 'with only mfcc:', kNDScore
+
+
+    if param.CLF_KNN_MFCC_DELTA['name'] in saveWhom:
+        knnWithDelta.fit(withDeltaX, y)
+        utils.saveClassifier(knnWithDelta, param.CLF_KNN_MFCC_DELTA['path'])
+        print 'clf trained for feature contains mfcc and mfcc delta finished'
+
+        kDScore = cross_validation.cross_val_score(knnWithDelta, X=withDeltaX, y=y, cv=param.K_FOLD)
+        print 'with mfcc, mfcc delta', kDScore
+
+
+    if param.CLF_KNN_MFCC_DELTA2['name'] in saveWhom:
+        knnWithDelta2.fit(withDelta2X, y)
+        utils.saveClassifier(knnWithDelta2, param.CLF_KNN_MFCC_DELTA2['path'])
+        print 'clf trained for feature contains mfcc mfcc delta and mfcc delta 2nd order finished'
+
+        kD2Score = cross_validation.cross_val_score(knnWithDelta2, X=withDelta2X, y=y, cv=param.K_FOLD)
+        print 'with mfcc, mfcc delta and mfcc delta 2nd order', kD2Score
+
+
+    if param.CLF_GMM_MFCC['name'] in saveWhom:
+        gmmNoDelta.fit(noDeltaX)
+        utils.saveClassifier(gmmNoDelta, param.CLF_GMM_MFCC['path'])
+        print 'GMM clf trained for mfcc only'
+
+    if param.CLF_GMM_MFCC_DELTA['name'] in saveWhom:
+        gmmWithDelta.fit(withDeltaX)
+        utils.saveClassifier(gmmWithDelta, param.CLF_GMM_MFCC_DELTA['path'])
+        print 'GMM clf trained for mfcc and mfcc delta'
+
+    if param.CLF_GMM_MFCC_DELTA2['name'] in saveWhom:
+        gmmWithDelta2.fit(withDelta2X)
+        utils.saveClassifier(gmmWithDelta2, param.CLF_GMM_MFCC_DELTA2['path'])
+        print 'GMM clf trained for mfcc mfcc delta and mfcc delta 2nd order'
 
 # def compareClf(gmm, knn, rate, fileGroupedSig, fileGroupedL2, frameTime):
 #     gmmList = testClf(gmm, rate, fileGroupedSig, frameTime)
@@ -86,52 +126,49 @@ def refinePrediction(predictionList, frameSize):
         merged.append(maxProbabilityClass)
     return merged
 
-
-def train(save=False):
-    trainRate, trainSigList, y = utilsData.getData(param.fileContextMap)
-    print 'train data retrieved'
-
-    mfccList = []
-    for trainSig in trainSigList:
-        mfcc = fg.sigToMFCC(trainRate, trainSig)
-        mfccList.append(mfcc)
-
-    knn = trainKNN(mfccList, y)
-
-    mfccs = []
-    for mfcc in mfccList:
-        mfccs.extend(mfcc)
-
-    gmm = trainGMM(mfccs, n_components=param.N_COMPONENTS)
-
-    print 'gmm trained'
-
-    if(save):
-        utils.saveClassifier(gmm, param.CLF_GMM_TEST)
-        utils.saveClassifier(knn, param.CLF_KNN_TEST)
-        print 'gmm saved to:', param.CLF_GMM_TEST, param.CLF_KNN_TEST
-    else:
-        print 'save param is false, will not save classifier'
-
-    return gmm, knn
-
-
-
-
-def test(gmm=None, knn=None):
-    if not gmm:
-        gmm = utils.loadClassifier(param.CLF_GMM_TEST)
-
-    if not knn:
-        knn = utils.loadClassifier(param.CLF_KNN_TEST)
-
-    trainRate, trainSigList, L2s = utilsData.getData(param.testSet)
-    # compareClf(gmm, knn, trainRate, trainSigList, L2s, frameTime=10)
-    # print testClf(gmm, trainRate, trainSigList, frameTime=10)
-
+#
+# def train(save=False):
+#     trainRate, trainSigList, y = utilsData.getData(param.fileContextMap)
+#     print 'train data retrieved'
+#
+#     mfccList = []
+#     for trainSig in trainSigList:
+#         mfcc = fg.sigToMFCC(trainRate, trainSig)
+#         mfccList.append(mfcc)
+#
+#     knn = trainKNN(mfccList, y)
+#
+#     mfccs = []
+#     for mfcc in mfccList:
+#         mfccs.extend(mfcc)
+#
+#     gmm = trainGMM(mfccs, n_components=param.N_COMPONENTS)
+#
+#     print 'gmm trained'
+#
+#     if(save):
+#         utils.saveClassifier(gmm, param.CLF_GMM_TEST)
+#         utils.saveClassifier(knn, param.CLF_KNN_TEST)
+#         print 'gmm saved to:', param.CLF_GMM_TEST, param.CLF_KNN_TEST
+#     else:
+#         print 'save param is false, will not save classifier'
+#
+#     return gmm, knn
+#
+#
+#
+#
+# def test(gmm=None, knn=None):
+#     if not gmm:
+#         gmm = utils.loadClassifier(param.CLF_GMM_TEST)
+#
+#     if not knn:
+#         knn = utils.loadClassifier(param.CLF_KNN_TEST)
+#
+#     trainRate, trainSigList, L2s = utilsData.getData(param.testSet)
+#     # compareClf(gmm, knn, trainRate, trainSigList, L2s, frameTime=10)
+#     # print testClf(gmm, trainRate, trainSigList, frameTime=10)
+#
 
 # gmm, knn = train(save=True)
 # test(gmm, knn)
-
-rate, fileGroupedSig, fileGroupedY = utilsData.getData(param.fileContextMap)
-testKNN(rate, fileGroupedSig, fileGroupedY, param.FRAME_IN_SEC)
