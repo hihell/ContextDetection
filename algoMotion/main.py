@@ -174,15 +174,17 @@ def predictSS(X, clf1, clf2Active, clf2Inactive):
     inactiveData = X[inaIndexes]
     if len(actIndexes) > 0:
         p2Active = clf2Active.predict(activeData)
+
     if len(inaIndexes) > 0:
         p2Inactive = clf2Inactive.predict(inactiveData)
 
-    pIndex = np.concatenate((actIndexes,inaIndexes), axis=0)
+    pIndex = np.concatenate((actIndexes, inaIndexes), axis=0)
+
     pred = np.concatenate((p2Active, p2Inactive), axis=0)
 
     zipped = zip(pIndex, pred)
     zipped.sort(key = lambda t:t[0])
 
-    p = [prediction for index, prediction in zipped]
+    p = [int(prediction) for index, prediction in zipped]
 
     return p

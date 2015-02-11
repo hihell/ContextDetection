@@ -154,6 +154,11 @@ def getFileStatus(filePath):
 
 
 def getDataListStatus(dataList):
+
+    for data in dataList:
+        if not 'status' in data:
+            return 'no status in dataList'
+
     message = ''
     dataList = getDataBySensorType('accelerometer', dataList)
 

@@ -10,6 +10,9 @@ import json
 import algoMotion.utilsData as ud
 import algoMotion.parameters as param
 
+from utils.utils import saveClassifier
+from utils.utils import loadClassifier
+
 from django.conf import settings
 from django.conf.urls import patterns, url
 from django.core.management import execute_from_command_line
@@ -66,6 +69,7 @@ def predictByRawData(req):
 
     rawData = None
     X = None
+    y2 = -1
     if 'rawData' in d and isinstance(d['rawData'], list):
         rawData = d['rawData']
         clfType = ['SS']
@@ -112,15 +116,21 @@ def logRawPrediction(distinct_id, name, rawData, X, result, y=None):
     logProperties['rawData'] = rawData
     logProperties['X'] = X
 
-    logProperties['predVH'] = result['predVH']
-    logProperties['predSS'] = result['predSS']
+    if 'predVH' in result:
+        logProperties['predVH'] = result['predVH']
+    if 'predSS' in result:
+        logProperties['predSS'] = result['predSS']
 
     if y:
         logProperties['y'] = y
-        rateVH = ud.getCorrectRate(y, result['predVH'])
-        rateSS = ud.getCorrectRate(y, result['predSS'])
-        logProperties['correct_rate_VH'] = rateVH
-        logProperties['correct_rate_SS'] = rateSS
+        if 'predVH' in result:
+            rateVH = ud.getCorrectRate(y, result['predVH'])
+            logProperties['correct_rate_VH'] = rateVH
+        if 'predSS' in result:
+            rateSS = ud.getCorrectRate(y, result['predSS'])
+            logProperties['correct_rate_SS'] = rateSS
+
+
 
     mp.track(distinct_id, name, logProperties)
 
@@ -132,10 +142,10 @@ urlpatterns = patterns('',
 )
 
 #load trained classifiers
-clfVH = algoMain.loadClassifier(param.CLASSIFIER_VH_PATH)
-clfSS_L1 = algoMain.loadClassifier(param.CLASSIFIER_SS_L1_PATH)
-clfSS_L2A = algoMain.loadClassifier(param.CLASSIFIER_SS_L2A_PATH)
-clfSS_L2I = algoMain.loadClassifier(param.CLASSIFIER_SS_L2I_PATH)
+clfVH = loadClassifier(param.CLASSIFIER_VH_PATH)
+clfSS_L1 = loadClassifier(param.CLASSIFIER_SS_L1_PATH)
+clfSS_L2A = loadClassifier(param.CLASSIFIER_SS_L2A_PATH)
+clfSS_L2I = loadClassifier(param.CLASSIFIER_SS_L2I_PATH)
 
 
 if __name__ == "__main__":
